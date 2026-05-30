@@ -4,8 +4,8 @@ build:
 	go build -o bin/help ./cmd/help
 
 build-ui:
-	cd ui/frontend && npm install && npm run build
-	go build -o bin/help-ui ./ui/
+	cd ui && wails build
+	cp ui/build/bin/help-ui bin/help-ui
 
 run:
 	go run ./cmd/help
