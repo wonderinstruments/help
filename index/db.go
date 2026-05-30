@@ -6,18 +6,21 @@ import (
 	"fmt"
 	"math"
 	"strings"
+	"sync"
 
-	_ "github.com/asg017/sqlite-vec-go-bindings/ncruces"
-	_ "github.com/ncruces/go-sqlite3/driver"
+	_ "github.com/mattn/go-sqlite3"
 
 	"wonderinstruments.com/help/embed"
 )
+
+var vecOnce sync.Once
 
 type DB struct {
 	conn *sql.DB
 }
 
 func Open(path string) (*DB, error) {
+	vecOnce.Do(initVec)
 	conn, err := sql.Open("sqlite3", path)
 	if err != nil {
 		return nil, err
