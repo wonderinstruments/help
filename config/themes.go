@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"os"
 	"path/filepath"
+	"strings"
 )
 
 type Base16Theme struct {
@@ -48,19 +49,65 @@ var DefaultDarkTheme = Base16Theme{
 }
 
 func LoadTheme(cfg Config) Base16Theme {
+	// 1. Try stylix palette (auto-detected system theme)
+	home, _ := os.UserHomeDir()
+	stylixPath := filepath.Join(home, ".config", "stylix", "palette.json")
+	if theme, err := loadThemeFile(stylixPath); err == nil {
+		return theme
+	}
+
+	// 2. Try user override in cache dir
 	themePath := filepath.Join(cfg.CacheDir, "theme.json")
-	data, err := os.ReadFile(themePath)
+	if theme, err := loadThemeFile(themePath); err == nil {
+		return theme
+	}
+
+	return DefaultDarkTheme
+}
+
+func loadThemeFile(path string) (Base16Theme, error) {
+	data, err := os.ReadFile(path)
 	if err != nil {
-		return DefaultDarkTheme
+		return Base16Theme{}, err
 	}
 	var theme Base16Theme
 	if err := json.Unmarshal(data, &theme); err != nil {
-		return DefaultDarkTheme
+		return Base16Theme{}, err
 	}
-	return theme
+	// Ensure all colors have # prefix
+	theme.Base00 = ensureHash(theme.Base00)
+	theme.Base01 = ensureHash(theme.Base01)
+	theme.Base02 = ensureHash(theme.Base02)
+	theme.Base03 = ensureHash(theme.Base03)
+	theme.Base04 = ensureHash(theme.Base04)
+	theme.Base05 = ensureHash(theme.Base05)
+	theme.Base06 = ensureHash(theme.Base06)
+	theme.Base07 = ensureHash(theme.Base07)
+	theme.Base08 = ensureHash(theme.Base08)
+	theme.Base09 = ensureHash(theme.Base09)
+	theme.Base0A = ensureHash(theme.Base0A)
+	theme.Base0B = ensureHash(theme.Base0B)
+	theme.Base0C = ensureHash(theme.Base0C)
+	theme.Base0D = ensureHash(theme.Base0D)
+	theme.Base0E = ensureHash(theme.Base0E)
+	theme.Base0F = ensureHash(theme.Base0F)
+	return theme, nil
 }
 
-func (t Base16Theme) ToCSS() string {
+func ensureHash(color string) string {
+	if color == "" {
+		return color
+	}
+	if !strings.HasPrefix(color, "#") {
+		return "#" + color
+	}
+	return color
+}
+
+func (t Base16Theme) ToCSS(fontSize string) string {
+	if fontSize == "" {
+		fontSize = "16px"
+	}
 	return fmt.Sprintf(`:root {
   --base00: %s;
   --base01: %s;
@@ -78,7 +125,8 @@ func (t Base16Theme) ToCSS() string {
   --base0D: %s;
   --base0E: %s;
   --base0F: %s;
+  --font-size: %s;
 }`, t.Base00, t.Base01, t.Base02, t.Base03, t.Base04, t.Base05,
 		t.Base06, t.Base07, t.Base08, t.Base09, t.Base0A, t.Base0B,
-		t.Base0C, t.Base0D, t.Base0E, t.Base0F)
+		t.Base0C, t.Base0D, t.Base0E, t.Base0F, fontSize)
 }

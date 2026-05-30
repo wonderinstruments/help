@@ -10,6 +10,7 @@ type Config struct {
 	CacheDir string
 	DBPath   string
 	Theme    string
+	FontSize string
 }
 
 func Default() Config {
@@ -20,6 +21,7 @@ func Default() Config {
 		CacheDir: cacheDir,
 		DBPath:   filepath.Join(cacheDir, "index.db"),
 		Theme:    "default-dark",
+		FontSize: "16px",
 	}
 }
 

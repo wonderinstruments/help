@@ -156,5 +156,5 @@ func (a *App) Search(query string, tag string, limit int) ([]UISearchResult, err
 
 func (a *App) GetThemeCSS() string {
 	theme := config.LoadTheme(a.cfg)
-	return theme.ToCSS()
+	return theme.ToCSS(a.cfg.FontSize)
 }

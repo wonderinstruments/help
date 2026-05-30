@@ -24,6 +24,7 @@
 
 body {
   font-family: var(--font-body);
+  font-size: var(--font-size, 16px);
   background: var(--base00);
   color: var(--base05);
   height: 100vh;
