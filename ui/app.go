@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"context"
+	"fmt"
 	"os"
 	"path/filepath"
 
@@ -156,5 +157,7 @@ func (a *App) Search(query string, tag string, limit int) ([]UISearchResult, err
 
 func (a *App) GetThemeCSS() string {
 	theme := config.LoadTheme(a.cfg)
-	return theme.ToCSS(a.cfg.FontSize)
+	css := theme.ToCSS(a.cfg.FontSize)
+	fmt.Printf("[help-ui] font-size: %s, theme: %s\n", a.cfg.FontSize, theme.Name)
+	return css
 }
