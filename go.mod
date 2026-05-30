@@ -8,7 +8,7 @@ require (
 	github.com/ncruces/go-sqlite3 v0.17.2-0.20240711235451-21de85e849b7
 	github.com/spf13/cobra v1.10.2
 	github.com/sugarme/tokenizer v0.3.0
-	github.com/yalue/onnxruntime_go v1.30.1
+	github.com/yalue/onnxruntime_go v1.25.0
 	gopkg.in/yaml.v3 v3.0.1
 )
 
