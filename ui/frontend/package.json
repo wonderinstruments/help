@@ -1,0 +1,13 @@
+{
+  "name": "help-ui-frontend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "node build.mjs",
+    "dev": "node dev.mjs"
+  },
+  "devDependencies": {
+    "esbuild": "^0.20.0"
+  }
+}
