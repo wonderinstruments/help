@@ -3,6 +3,7 @@ const sidebar = document.getElementById('sidebar');
 const content = document.getElementById('content');
 
 let searchTimeout = null;
+let currentDocPath = '';
 
 async function init() {
   // Load theme override if available
@@ -33,12 +34,38 @@ function renderSidebar(docs) {
 }
 
 async function readDoc(path) {
+  currentDocPath = path;
   const html = await window.go.main.App.GetDocument(path);
   content.innerHTML = html;
+  bindDocLinks();
 
   sidebar.querySelectorAll('.doc-item').forEach(el => {
     el.classList.toggle('active', el.dataset.path === path);
   });
+}
+
+function bindDocLinks() {
+  content.querySelectorAll('a[href]').forEach(el => {
+    const href = el.getAttribute('href');
+    if (href && href.endsWith('.md') && !href.startsWith('http')) {
+      el.addEventListener('click', (e) => {
+        e.preventDefault();
+        const resolved = resolvePath(currentDocPath, href);
+        readDoc(resolved);
+      });
+    }
+  });
+}
+
+function resolvePath(from, rel) {
+  const dir = from.includes('/') ? from.substring(0, from.lastIndexOf('/') + 1) : '';
+  const parts = (dir + rel).split('/');
+  const resolved = [];
+  for (const p of parts) {
+    if (p === '..') resolved.pop();
+    else if (p !== '.' && p !== '') resolved.push(p);
+  }
+  return resolved.join('/');
 }
 
 async function doSearch(query) {
