@@ -9,12 +9,23 @@ async function init() {
   // Load theme override if available
   try {
     const themeCSS = await window.go.main.App.GetThemeCSS();
+    console.log('[help-ui] theme CSS received, length:', themeCSS?.length);
+    console.log('[help-ui] theme CSS:', themeCSS);
     if (themeCSS) {
       const style = document.createElement('style');
       style.textContent = themeCSS;
       document.head.appendChild(style);
     }
-  } catch (e) {}
+  } catch (e) {
+    console.error('[help-ui] theme load error:', e);
+  }
+
+  // Log computed styles
+  const computed = getComputedStyle(document.documentElement);
+  console.log('[help-ui] --font-size:', computed.getPropertyValue('--font-size'));
+  console.log('[help-ui] --font-body:', computed.getPropertyValue('--font-body'));
+  console.log('[help-ui] body font-size:', getComputedStyle(document.body).fontSize);
+  console.log('[help-ui] body font-family:', getComputedStyle(document.body).fontFamily);
 
   const docs = await window.go.main.App.ListDocuments('');
   renderSidebar(docs);
