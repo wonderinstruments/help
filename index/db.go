@@ -128,12 +128,13 @@ func (db *DB) SearchChunks(queryEmbedding []float32, limit int) ([]SearchResult,
 	rows, err := db.conn.Query(`
 		SELECT v.chunk_id, v.distance, c.doc_id, c.heading, c.content,
 		       d.path, d.title, d.tags
-		FROM vec_chunks v
+		FROM (
+			SELECT chunk_id, distance FROM vec_chunks
+			WHERE embedding MATCH ?
+			ORDER BY distance LIMIT ?
+		) v
 		JOIN chunks c ON c.id = v.chunk_id
 		JOIN documents d ON d.id = c.doc_id
-		WHERE v.embedding MATCH ?
-		ORDER BY v.distance
-		LIMIT ?
 	`, serializeEmbedding(queryEmbedding), limit)
 	if err != nil {
 		return nil, err
@@ -152,17 +153,19 @@ func (db *DB) SearchChunks(queryEmbedding []float32, limit int) ([]SearchResult,
 }
 
 func (db *DB) SearchChunksWithTag(queryEmbedding []float32, tag string, limit int) ([]SearchResult, error) {
+	// Over-fetch from vec search then filter by tag
 	rows, err := db.conn.Query(`
 		SELECT v.chunk_id, v.distance, c.doc_id, c.heading, c.content,
 		       d.path, d.title, d.tags
-		FROM vec_chunks v
+		FROM (
+			SELECT chunk_id, distance FROM vec_chunks
+			WHERE embedding MATCH ?
+			ORDER BY distance LIMIT ?
+		) v
 		JOIN chunks c ON c.id = v.chunk_id
 		JOIN documents d ON d.id = c.doc_id
-		WHERE v.embedding MATCH ?
-		  AND d.tags LIKE ?
-		ORDER BY v.distance
-		LIMIT ?
-	`, serializeEmbedding(queryEmbedding), `%"`+tag+`"%`, limit)
+		WHERE d.tags LIKE ?
+	`, serializeEmbedding(queryEmbedding), limit*3, `%"`+tag+`"%`)
 	if err != nil {
 		return nil, err
 	}
