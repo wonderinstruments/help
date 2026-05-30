@@ -19,12 +19,15 @@ import (
 type App struct {
 	ctx        context.Context
 	cfg        config.Config
+	db         *index.DB
+	dbReady    chan struct{}
 	embedReady chan struct{}
 }
 
 func NewApp() *App {
 	return &App{
 		cfg:        config.Default(),
+		dbReady:    make(chan struct{}),
 		embedReady: make(chan struct{}),
 	}
 }
@@ -32,10 +35,22 @@ func NewApp() *App {
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
 	go func() {
+		db, err := index.Open(a.cfg.DBPath)
+		if err == nil {
+			a.db = db
+		}
+		close(a.dbReady)
+	}()
+	go func() {
 		embed.InitONNX()
 		embed.InitTokenizer()
 		close(a.embedReady)
 	}()
+}
+
+func (a *App) waitDB() *index.DB {
+	<-a.dbReady
+	return a.db
 }
 
 func (a *App) waitEmbed() {
@@ -43,6 +58,9 @@ func (a *App) waitEmbed() {
 }
 
 func (a *App) shutdown(ctx context.Context) {
+	if a.db != nil {
+		a.db.Close()
+	}
 	embed.CleanupONNX()
 }
 
@@ -53,11 +71,10 @@ type DocInfo struct {
 }
 
 func (a *App) ListDocuments(tag string) ([]DocInfo, error) {
-	db, err := index.Open(a.cfg.DBPath)
-	if err != nil {
-		return nil, err
+	db := a.waitDB()
+	if db == nil {
+		return nil, nil
 	}
-	defer db.Close()
 
 	docs, err := db.ListDocuments(tag)
 	if err != nil {
