@@ -119,9 +119,10 @@ body {
 #content code {
   font-family: var(--font-mono);
   background: var(--base01);
+  color: var(--base03);
   padding: 0.15rem 0.35rem;
   border-radius: 3px;
-  font-size: 0.85em;
+  font-size: 0.95em;
 }
 #content pre {
   background: var(--base01);
