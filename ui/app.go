@@ -17,21 +17,29 @@ import (
 )
 
 type App struct {
-	ctx context.Context
-	cfg config.Config
+	ctx        context.Context
+	cfg        config.Config
+	embedReady chan struct{}
 }
 
 func NewApp() *App {
-	return &App{cfg: config.Default()}
+	return &App{
+		cfg:        config.Default(),
+		embedReady: make(chan struct{}),
+	}
 }
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
+	go func() {
+		embed.InitONNX()
+		embed.InitTokenizer()
+		close(a.embedReady)
+	}()
 }
 
-func (a *App) ensureEmbed() {
-	embed.InitONNX()
-	embed.InitTokenizer()
+func (a *App) waitEmbed() {
+	<-a.embedReady
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -109,7 +117,7 @@ type UISearchResult struct {
 }
 
 func (a *App) Search(query string, tag string, limit int) ([]UISearchResult, error) {
-	a.ensureEmbed()
+	a.waitEmbed()
 	results, err := index.Search(a.cfg.DBPath, query, tag, limit, true)
 	if err != nil {
 		return nil, err
