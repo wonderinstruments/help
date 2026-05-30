@@ -56,6 +56,11 @@ func (db *DB) migrate() error {
 			chunk_id INTEGER PRIMARY KEY,
 			embedding FLOAT[%d]
 		)`, embed.EmbeddingDim),
+		`CREATE VIRTUAL TABLE IF NOT EXISTS fts_chunks USING fts5(
+			chunk_id UNINDEXED,
+			heading,
+			content
+		)`,
 	}
 	for _, stmt := range stmts {
 		if _, err := db.conn.Exec(stmt); err != nil {
@@ -77,6 +82,7 @@ func (db *DB) UpsertDocument(doc *Document) (int64, error) {
 	}
 
 	if err == nil {
+		db.conn.Exec("DELETE FROM fts_chunks WHERE chunk_id IN (SELECT id FROM chunks WHERE doc_id = ?)", existingID)
 		db.conn.Exec("DELETE FROM vec_chunks WHERE chunk_id IN (SELECT id FROM chunks WHERE doc_id = ?)", existingID)
 		db.conn.Exec("DELETE FROM chunks WHERE doc_id = ?", existingID)
 		db.conn.Exec("DELETE FROM documents WHERE id = ?", existingID)
@@ -111,6 +117,71 @@ func (db *DB) InsertChunkEmbedding(chunkID int64, embedding []float32) error {
 		chunkID, serializeEmbedding(embedding),
 	)
 	return err
+}
+
+func (db *DB) InsertChunkFTS(chunkID int64, heading, content string) error {
+	_, err := db.conn.Exec(
+		"INSERT INTO fts_chunks (chunk_id, heading, content) VALUES (?, ?, ?)",
+		chunkID, heading, content,
+	)
+	return err
+}
+
+func (db *DB) SearchChunksFTS(query string, limit int) ([]int64, error) {
+	rows, err := db.conn.Query(`
+		SELECT chunk_id FROM fts_chunks
+		WHERE fts_chunks MATCH ?
+		ORDER BY rank
+		LIMIT ?
+	`, query, limit)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var ids []int64
+	for rows.Next() {
+		var id int64
+		if err := rows.Scan(&id); err != nil {
+			return nil, err
+		}
+		ids = append(ids, id)
+	}
+	return ids, rows.Err()
+}
+
+func (db *DB) GetChunksByIDs(ids []int64) ([]SearchResult, error) {
+	if len(ids) == 0 {
+		return nil, nil
+	}
+	placeholders := make([]string, len(ids))
+	args := make([]interface{}, len(ids))
+	for i, id := range ids {
+		placeholders[i] = "?"
+		args[i] = id
+	}
+
+	rows, err := db.conn.Query(`
+		SELECT c.id, c.doc_id, c.heading, c.content,
+		       d.path, d.title, d.tags
+		FROM chunks c
+		JOIN documents d ON d.id = c.doc_id
+		WHERE c.id IN (`+strings.Join(placeholders, ",")+`)
+	`, args...)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+
+	var results []SearchResult
+	for rows.Next() {
+		var r SearchResult
+		if err := rows.Scan(&r.ChunkID, &r.DocID, &r.Heading, &r.Content, &r.DocPath, &r.DocTitle, &r.Tags); err != nil {
+			return nil, err
+		}
+		results = append(results, r)
+	}
+	return results, rows.Err()
 }
 
 type SearchResult struct {
