@@ -1,26 +1,26 @@
 .PHONY: build build-ui run index search dev-ui test clean install
 
 build:
-	go build -o bin/help ./cmd/help
+	go build -tags fts5 -o bin/help ./cmd/help
 
 build-ui:
 	cd ui && wails build
 	cp ui/build/bin/help-ui bin/help-ui
 
 run:
-	go run ./cmd/help
+	go run -tags fts5 ./cmd/help
 
 index:
-	go run ./cmd/help index
+	go run -tags fts5 ./cmd/help index
 
 search:
-	go run ./cmd/help search $(QUERY)
+	go run -tags fts5 ./cmd/help search $(QUERY)
 
 dev-ui:
 	cd ui && wails dev
 
 test:
-	go test ./...
+	go test -tags fts5 ./...
 
 install: build build-ui
 	cp bin/help ~/.local/bin/help

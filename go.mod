@@ -4,9 +4,8 @@ go 1.26.3
 
 require (
 	github.com/CharLemAznable/qwen-tokenizer v0.0.0-20240910052652-5491bd2bfeab
-	github.com/asg017/sqlite-vec-go-bindings v0.0.1-alpha.37
 	github.com/charmbracelet/glamour v1.0.0
-	github.com/ncruces/go-sqlite3 v0.17.2-0.20240711235451-21de85e849b7
+	github.com/mattn/go-sqlite3 v1.14.44
 	github.com/spf13/cobra v1.10.2
 	github.com/sugarme/tokenizer v0.3.0
 	github.com/wailsapp/wails/v2 v2.12.0
@@ -59,7 +58,6 @@ require (
 	github.com/mitchellh/colorstring v0.0.0-20190213212951-d06e56a500db // indirect
 	github.com/muesli/reflow v0.3.0 // indirect
 	github.com/muesli/termenv v0.16.0 // indirect
-	github.com/ncruces/julianday v1.0.0 // indirect
 	github.com/olekukonko/tablewriter v0.0.5 // indirect
 	github.com/patrickmn/go-cache v2.1.0+incompatible // indirect
 	github.com/pkg/browser v0.0.0-20240102092130-5ac0b6a4141c // indirect
@@ -69,7 +67,6 @@ require (
 	github.com/schollz/progressbar/v2 v2.15.0 // indirect
 	github.com/spf13/pflag v1.0.9 // indirect
 	github.com/sugarme/regexpset v0.0.0-20200920021344-4d4ec8eaf93c // indirect
-	github.com/tetratelabs/wazero v1.7.3 // indirect
 	github.com/tkrajina/go-reflector v0.5.8 // indirect
 	github.com/valyala/bytebufferpool v1.0.0 // indirect
 	github.com/valyala/fasttemplate v1.2.2 // indirect
