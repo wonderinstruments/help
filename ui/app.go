@@ -27,11 +27,11 @@ func NewApp() *App {
 
 func (a *App) startup(ctx context.Context) {
 	a.ctx = ctx
-	ready, _ := embed.RuntimeReady()
-	if ready {
-		embed.InitONNX()
-		embed.InitTokenizer()
-	}
+}
+
+func (a *App) ensureEmbed() {
+	embed.InitONNX()
+	embed.InitTokenizer()
 }
 
 func (a *App) shutdown(ctx context.Context) {
@@ -109,6 +109,7 @@ type UISearchResult struct {
 }
 
 func (a *App) Search(query string, tag string, limit int) ([]UISearchResult, error) {
+	a.ensureEmbed()
 	results, err := index.Search(a.cfg.DBPath, query, tag, limit, true)
 	if err != nil {
 		return nil, err
