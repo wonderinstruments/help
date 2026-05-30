@@ -18,13 +18,13 @@
 
   --font-body: system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", monospace;
-  --font-size: 18px;
+  --font-size: 20px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
 html {
-  font-size: var(--font-size, 18px);
+  font-size: var(--font-size, 20px);
 }
 
 body {
@@ -88,7 +88,7 @@ body {
 
 #sidebar .doc-item:hover {
   background: var(--base02);
-  color: var(--base07);
+  color: var(--base03);
 }
 
 #sidebar .doc-item.active {
