@@ -1,10 +1,11 @@
-.PHONY: build build-ui run index search dev-ui test clean
+.PHONY: build build-ui run index search dev-ui test clean install
 
 build:
 	go build -o bin/help ./cmd/help
 
 build-ui:
-	cd ui && wails build
+	cd ui/frontend && npm install && npm run build
+	go build -o bin/help-ui ./ui/
 
 run:
 	go run ./cmd/help
@@ -21,6 +22,10 @@ dev-ui:
 test:
 	go test ./...
 
+install: build build-ui
+	cp bin/help ~/.local/bin/help
+	cp bin/help-ui ~/.local/bin/help-ui
+
 clean:
-	rm -rf bin/ ui/build/
+	rm -rf bin/ ui/build/ ui/frontend/dist/
 	rm -f ~/.cache/help/index.db
