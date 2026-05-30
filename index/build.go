@@ -85,6 +85,12 @@ func BuildIndex(docsDir string, dbPath string) error {
 				continue
 			}
 
+			// FTS index
+			if err := db.InsertChunkFTS(chunkID, chunk.Heading, chunk.Content); err != nil {
+				fmt.Fprintf(os.Stderr, "  fts error: %v\n", err)
+			}
+
+			// Vector embedding
 			text := chunk.Content
 			if chunk.Heading != "" {
 				text = chunk.Heading + "\n" + text
