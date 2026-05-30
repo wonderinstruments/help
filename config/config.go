@@ -21,7 +21,7 @@ func Default() Config {
 		CacheDir: cacheDir,
 		DBPath:   filepath.Join(cacheDir, "index.db"),
 		Theme:    "default-dark",
-		FontSize: "16px",
+		FontSize: "18px",
 	}
 }
 

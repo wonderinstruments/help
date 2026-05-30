@@ -18,14 +18,18 @@
 
   --font-body: system-ui, -apple-system, sans-serif;
   --font-mono: ui-monospace, "Cascadia Code", "JetBrains Mono", monospace;
-  --font-size: 16px;
+  --font-size: 18px;
 }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 
+html {
+  font-size: var(--font-size, 18px);
+}
+
 body {
   font-family: var(--font-body);
-  font-size: var(--font-size, 16px);
+  font-size: 1rem;
   background: var(--base00);
   color: var(--base05);
   height: 100vh;
@@ -67,10 +71,10 @@ body {
 }
 
 #sidebar {
-  width: 240px;
+  width: 260px;
   padding: 0.75rem;
-  background: var(--base02);
-  border-right: 1px solid var(--base03);
+  background: var(--base01);
+  border-right: 1px solid var(--base02);
   overflow-y: auto;
 }
 
