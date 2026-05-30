@@ -1,1 +1,6 @@
 embed/models/
+bin/
+help
+help-ui
+ui/frontend/node_modules/
+ui/frontend/dist/
