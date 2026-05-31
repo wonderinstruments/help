@@ -52,21 +52,96 @@ var searchCmd = &cobra.Command{
 		for i, r := range results {
 			fmt.Printf("\n%d. %s", i+1, r.DocTitle)
 			if r.Heading != "" {
-				fmt.Printf(" > %s", r.Heading)
+				fmt.Printf(" > %s", cleanHeading(r.Heading))
 			}
-			fmt.Printf(" (%.2f)\n", r.Score)
-			fmt.Printf("   [%s] %s\n", r.Tags, r.DocPath)
-			lines := strings.SplitN(r.Content, "\n", 4)
-			for _, l := range lines[:min(len(lines), 3)] {
-				l = strings.TrimSpace(l)
-				if l != "" {
-					fmt.Printf("   %s\n", l)
-				}
+			fmt.Printf("  (%.2f)\n", r.Score)
+			fmt.Printf("   %s  %s\n", formatTags(r.Tags), r.DocPath)
+			snippet := cleanSnippet(r.Content)
+			if snippet != "" {
+				fmt.Printf("   %s\n", snippet)
 			}
 		}
 		fmt.Println()
 		return nil
 	},
+}
+
+func cleanHeading(h string) string {
+	// Remove pandoc attribute syntax {#id} {.class}
+	if idx := strings.Index(h, " {"); idx > 0 {
+		h = h[:idx]
+	}
+	return h
+}
+
+func cleanSnippet(content string) string {
+	var cleaned []string
+	for _, line := range strings.Split(content, "\n") {
+		line = strings.TrimSpace(line)
+		// Skip heading underlines
+		if len(line) >= 3 && (strings.Trim(line, "=") == "" || strings.Trim(line, "-") == "") {
+			continue
+		}
+		// Skip latex index commands
+		if strings.HasPrefix(line, "\\index{") {
+			continue
+		}
+		// Skip empty lines
+		if line == "" {
+			continue
+		}
+		// Strip pandoc role syntax
+		line = stripRoles(line)
+		// Strip pandoc heading attributes {#id}
+		if idx := strings.Index(line, " {#"); idx > 0 {
+			line = line[:idx]
+		}
+		// Skip lines that are just markdown headings (already shown in result header)
+		if strings.HasPrefix(line, "# ") || strings.HasPrefix(line, "## ") || strings.HasPrefix(line, "### ") {
+			continue
+		}
+		cleaned = append(cleaned, line)
+		if len(cleaned) >= 2 {
+			break
+		}
+	}
+	return strings.Join(cleaned, "\n   ")
+}
+
+func stripRoles(s string) string {
+	// Remove `text`{.interpreted-text role="mod"} → `text`
+	for {
+		idx := strings.Index(s, "{.interpreted-text")
+		if idx < 0 {
+			break
+		}
+		end := strings.Index(s[idx:], "}")
+		if end < 0 {
+			break
+		}
+		s = s[:idx] + s[idx+end+1:]
+	}
+	return s
+}
+
+func formatTags(tagsJSON string) string {
+	tagsJSON = strings.TrimSpace(tagsJSON)
+	if tagsJSON == "[]" || tagsJSON == "" {
+		return ""
+	}
+	// Parse ["tag1","tag2"] → [tag1, tag2]
+	tagsJSON = strings.TrimPrefix(tagsJSON, "[")
+	tagsJSON = strings.TrimSuffix(tagsJSON, "]")
+	parts := strings.Split(tagsJSON, ",")
+	var tags []string
+	for _, p := range parts {
+		p = strings.TrimSpace(p)
+		p = strings.Trim(p, `"`)
+		if p != "" {
+			tags = append(tags, p)
+		}
+	}
+	return "[" + strings.Join(tags, ", ") + "]"
 }
 
 func init() {
