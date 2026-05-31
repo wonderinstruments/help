@@ -87,13 +87,39 @@ func chunkByHeading(body string) []Chunk {
 	var currentLines []string
 	lineNum := 1
 	startLine := 1
+	var prevLine string
 
-	scanner := bufio.NewScanner(strings.NewReader(body))
-	for scanner.Scan() {
-		line := scanner.Text()
+	lines := strings.Split(body, "\n")
+	for i, line := range lines {
 		trimmed := strings.TrimSpace(line)
+		isHeading := false
+		heading := ""
 
+		// ATX-style headings: # or ##
 		if strings.HasPrefix(trimmed, "# ") || strings.HasPrefix(trimmed, "## ") {
+			isHeading = true
+			heading = trimmed
+			for strings.HasPrefix(heading, "#") {
+				heading = heading[1:]
+			}
+			heading = strings.TrimSpace(heading)
+		}
+
+		// Setext-style headings: underline with === or ---
+		if !isHeading && i > 0 && len(trimmed) > 0 && prevLine != "" {
+			allEquals := len(trimmed) >= 3 && strings.Trim(trimmed, "=") == ""
+			allDashes := len(trimmed) >= 3 && strings.Trim(trimmed, "-") == ""
+			if allEquals || allDashes {
+				isHeading = true
+				heading = strings.TrimSpace(prevLine)
+				// Remove the previous line from currentLines (it's the heading text)
+				if len(currentLines) > 0 {
+					currentLines = currentLines[:len(currentLines)-1]
+				}
+			}
+		}
+
+		if isHeading {
 			if len(currentLines) > 0 {
 				current.Content = strings.TrimSpace(strings.Join(currentLines, "\n"))
 				current.StartLine = startLine
@@ -102,17 +128,13 @@ func chunkByHeading(body string) []Chunk {
 					chunks = append(chunks, current)
 				}
 			}
-			heading := trimmed
-			for strings.HasPrefix(heading, "#") {
-				heading = heading[1:]
-			}
-			heading = strings.TrimSpace(heading)
 			current = Chunk{Heading: heading}
 			currentLines = nil
 			startLine = lineNum
 		}
 
 		currentLines = append(currentLines, line)
+		prevLine = trimmed
 		lineNum++
 	}
 
