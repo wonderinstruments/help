@@ -90,8 +90,18 @@ func cleanSnippet(content string) string {
 		if line == "" {
 			continue
 		}
+		// Skip pandoc div markers
+		if strings.HasPrefix(line, ":::") {
+			continue
+		}
+		// Skip fenced code block attributes
+		if strings.HasPrefix(line, "~~~") || strings.HasPrefix(line, "```") {
+			continue
+		}
 		// Strip pandoc role syntax
 		line = stripRoles(line)
+		// Strip pandoc attributes on inline elements {.class key="val"}
+		line = stripPandocAttrs(line)
 		// Strip pandoc heading attributes {#id}
 		if idx := strings.Index(line, " {#"); idx > 0 {
 			line = line[:idx]
@@ -120,6 +130,29 @@ func stripRoles(s string) string {
 			break
 		}
 		s = s[:idx] + s[idx+end+1:]
+	}
+	return s
+}
+
+func stripPandocAttrs(s string) string {
+	// Remove {.class key="val"} and {#id} patterns
+	for {
+		idx := strings.Index(s, " {")
+		if idx < 0 {
+			break
+		}
+		end := strings.Index(s[idx:], "}")
+		if end < 0 {
+			break
+		}
+		inner := s[idx+2 : idx+end]
+		// Only strip if it looks like pandoc attrs (starts with . # or key=)
+		if strings.HasPrefix(inner, ".") || strings.HasPrefix(inner, "#") ||
+			strings.Contains(inner, "=") {
+			s = s[:idx] + s[idx+end+1:]
+		} else {
+			break
+		}
 	}
 	return s
 }
