@@ -28,22 +28,6 @@
           exec ${pkgs.wails}/bin/wails "$@" -tags webkit2_41
         '';
 
-        help-cli = pkgs.buildGoModule {
-          pname = "help-cli";
-          version = "0.1.0";
-          src = ./.;
-          vendorHash = "sha256-GFAgl1rEh/SpMNaXXGNd3JRKzp7PGwlXeOnplTA84UI=";
-          subPackages = [ "cmd/help" ];
-          tags = [ "fts5" ];
-          env.CGO_ENABLED = "1";
-          nativeBuildInputs = [ pkgs.makeWrapper ];
-          postInstall = ''
-            mv $out/bin/help $out/bin/help-cli
-            wrapProgram $out/bin/help-cli \
-              --prefix LD_LIBRARY_PATH : "${pkgs.onnxruntime}/lib"
-          '';
-        };
-
         runtimeLibs = with pkgs; [
           onnxruntime
           gtk3
@@ -56,17 +40,17 @@
           gst_all_1.gst-plugins-good
         ];
 
-        help-ui = pkgs.stdenv.mkDerivation {
-          pname = "help";
+        wrapHelp = name: bin: pkgs.stdenv.mkDerivation {
+          pname = name;
           version = "0.1.0";
           src = ./bin;
           nativeBuildInputs = [ pkgs.makeWrapper ];
           dontBuild = true;
           installPhase = ''
             mkdir -p $out/bin
-            cp help-ui $out/bin/help
-            chmod +x $out/bin/help
-            wrapProgram $out/bin/help \
+            cp ${bin} $out/bin/${name}
+            chmod +x $out/bin/${name}
+            wrapProgram $out/bin/${name} \
               --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath runtimeLibs}" \
               --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}" \
               --prefix GST_PLUGIN_PATH : "${pkgs.gst_all_1.gst-plugins-base}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-good}/lib/gstreamer-1.0"
@@ -75,8 +59,8 @@
       in
       {
         packages = {
-          help-cli = help-cli;
-          help = help-ui;
+          help-cli = wrapHelp "help-cli" "help-cli";
+          help = wrapHelp "help" "help-ui";
         };
 
         devShells.default = pkgs.mkShell {

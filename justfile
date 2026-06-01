@@ -23,8 +23,8 @@ dev-ui:
 test:
     go test -tags fts5 ./...
 
-release: build-ui
-    @echo "Prebuilt binary at bin/help-ui — run nixos-rebuild to install"
+release: build build-ui
+    @echo "Prebuilt binaries at bin/ — run nixos-rebuild to install"
 
 install: build build-ui
     cp bin/help-cli ~/.local/bin/help-cli
