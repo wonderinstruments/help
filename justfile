@@ -23,12 +23,23 @@ dev-ui:
 test:
     go test -tags fts5 ./...
 
-release: build build-ui
-    @echo "Prebuilt binaries at bin/ — run nixos-rebuild to install"
+create-release version: build build-ui
+    gh release create "v{{version}}" bin/help-cli bin/help-ui \
+        --title "v{{version}}" \
+        --notes "Release v{{version}}"
+    @echo "Release v{{version}} created. Run 'just update-hashes {{version}}' to update flake.nix"
 
-install: build build-ui
-    cp bin/help-cli ~/.local/bin/help-cli
-    cp bin/help-ui ~/.local/bin/help
+update-hashes version:
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cli_hash=$(nix-prefetch-url "https://github.com/wonderinstruments/help/releases/download/v{{version}}/help-cli" 2>/dev/null)
+    ui_hash=$(nix-prefetch-url "https://github.com/wonderinstruments/help/releases/download/v{{version}}/help-ui" 2>/dev/null)
+    sed -i 's|version = ".*";|version = "{{version}}";|' flake.nix
+    sed -i "0,/sha256 = \".*\";/s|sha256 = \".*\";|sha256 = \"$cli_hash\";|" flake.nix
+    sed -i "$(grep -n 'sha256 = ' flake.nix | tail -1 | cut -d: -f1)s|sha256 = \".*\";|sha256 = \"$ui_hash\";|" flake.nix
+    echo "Updated flake.nix to v{{version}}"
+    echo "  help-cli: $cli_hash"
+    echo "  help-ui:  $ui_hash"
 
 clean:
     rm -rf bin/ ui/build/ ui/frontend/dist/
