@@ -8,7 +8,7 @@ import (
 )
 
 var rootCmd = &cobra.Command{
-	Use:   "help",
+	Use:   "help-cli",
 	Short: "Semantic search over help documents",
 }
 
