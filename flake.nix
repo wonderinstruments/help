@@ -41,15 +41,29 @@
           gst_all_1.gst-plugins-good
         ];
 
+        version = "0.1.0";
+
+        binaries = {
+          help-cli = pkgs.fetchurl {
+            url = "https://github.com/wonderinstruments/help/releases/download/v${version}/help-cli";
+            sha256 = "1kdv00mhbyw4fp3n9hd6xkgi3i39y75iz8c2f6vhxzs7y57yfwm2";
+          };
+          help-ui = pkgs.fetchurl {
+            url = "https://github.com/wonderinstruments/help/releases/download/v${version}/help-ui";
+            sha256 = "0fvkza4qs94yc2q4bdkv347mhphcg107fkzk9h6gyp1h5bx1f2id";
+          };
+        };
+
         wrapHelp = name: bin: pkgs.stdenv.mkDerivation {
           pname = name;
-          version = "0.1.0";
-          src = ./bin;
+          inherit version;
+          src = bin;
+          dontUnpack = true;
           nativeBuildInputs = [ pkgs.makeWrapper ];
           dontBuild = true;
           installPhase = ''
             mkdir -p $out/bin
-            cp ${bin} $out/bin/${name}
+            cp $src $out/bin/${name}
             chmod +x $out/bin/${name}
             wrapProgram $out/bin/${name} \
               --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath runtimeLibs}" \
@@ -60,8 +74,8 @@
       in
       {
         packages = {
-          help-cli = wrapHelp "help-cli" "help-cli";
-          help = wrapHelp "help" "help-ui";
+          help-cli = wrapHelp "help-cli" binaries.help-cli;
+          help = wrapHelp "help" binaries.help-ui;
         };
 
         devShells.default = pkgs.mkShell {
