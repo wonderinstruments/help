@@ -6,6 +6,10 @@ export function GetDocument(arg1) {
   return window['go']['main']['App']['GetDocument'](arg1);
 }
 
+export function GetInitialDoc() {
+  return window['go']['main']['App']['GetInitialDoc']();
+}
+
 export function GetThemeCSS() {
   return window['go']['main']['App']['GetThemeCSS']();
 }

@@ -4,6 +4,8 @@ import {main} from '../models';
 
 export function GetDocument(arg1:string):Promise<string>;
 
+export function GetInitialDoc():Promise<string>;
+
 export function GetThemeCSS():Promise<string>;
 
 export function ListDocuments(arg1:string):Promise<Array<main.DocInfo>>;

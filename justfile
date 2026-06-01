@@ -2,7 +2,7 @@ default:
     @just --list
 
 build:
-    go build -tags fts5 -o bin/help ./cmd/help
+    go build -tags fts5 -o bin/help-cli ./cmd/help
 
 build-ui:
     cd ui && wails build
@@ -23,9 +23,12 @@ dev-ui:
 test:
     go test -tags fts5 ./...
 
+release: build-ui
+    @echo "Prebuilt binary at bin/help-ui — run nixos-rebuild to install"
+
 install: build build-ui
-    cp bin/help ~/.local/bin/help
-    cp bin/help-ui ~/.local/bin/help-ui
+    cp bin/help-cli ~/.local/bin/help-cli
+    cp bin/help-ui ~/.local/bin/help
 
 clean:
     rm -rf bin/ ui/build/ ui/frontend/dist/
