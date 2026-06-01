@@ -2,6 +2,7 @@ package main
 
 import (
 	"embed"
+	"os"
 
 	"github.com/wailsapp/wails/v2"
 	"github.com/wailsapp/wails/v2/pkg/options"
@@ -12,7 +13,11 @@ import (
 var assets embed.FS
 
 func main() {
-	app := NewApp()
+	var initialDoc string
+	if len(os.Args) > 1 {
+		initialDoc = os.Args[1]
+	}
+	app := NewApp(initialDoc)
 
 	err := wails.Run(&options.App{
 		Title:  "Help",
