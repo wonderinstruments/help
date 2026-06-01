@@ -44,45 +44,16 @@
           '';
         };
 
-        help-frontend = pkgs.buildNpmPackage {
-          pname = "help-frontend";
-          version = "0.1.0";
-          src = ./ui/frontend;
-          npmDepsHash = "sha256-Av70fcUrR7LOfmUjG88/FGHrEJDlhElYetnDcqtucnQ=";
-          dontNpmBuild = true;
-          buildPhase = ''
-            node build.mjs
-          '';
-          installPhase = ''
-            mkdir -p $out
-            cp -r dist/* $out/
-          '';
-        };
-
-        help-ui = pkgs.buildGoModule {
+        help-ui = pkgs.stdenv.mkDerivation {
           pname = "help";
           version = "0.1.0";
-          src = ./.;
-          vendorHash = "sha256-GFAgl1rEh/SpMNaXXGNd3JRKzp7PGwlXeOnplTA84UI=";
-          subPackages = [ "ui" ];
-          tags = [ "fts5" "webkit2_41" ];
-          env.CGO_ENABLED = "1";
-
-          nativeBuildInputs = with pkgs; [ makeWrapper pkg-config ];
-          buildInputs = with pkgs; [
-            gtk3
-            webkitgtk_4_1
-            libsoup_3
-            glib
-          ];
-
-          preBuild = ''
-            mkdir -p ui/frontend/dist
-            cp -r ${help-frontend}/* ui/frontend/dist/
-          '';
-
-          postInstall = ''
-            mv $out/bin/ui $out/bin/help
+          src = ./bin;
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          dontBuild = true;
+          installPhase = ''
+            mkdir -p $out/bin
+            cp help-ui $out/bin/help
+            chmod +x $out/bin/help
             wrapProgram $out/bin/help \
               --prefix LD_LIBRARY_PATH : "${pkgs.onnxruntime}/lib"
           '';
