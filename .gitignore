@@ -1,4 +1,6 @@
-/help
-/help-ui
+bin/
+result
+ui/build/
 ui/frontend/node_modules/
 ui/frontend/dist/
+ui/frontend/package.json.md5
