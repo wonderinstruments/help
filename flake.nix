@@ -27,8 +27,73 @@
         wailsWrapped = pkgs.writeShellScriptBin "wails" ''
           exec ${pkgs.wails}/bin/wails "$@" -tags webkit2_41
         '';
+
+        help-cli = pkgs.buildGoModule {
+          pname = "help-cli";
+          version = "0.1.0";
+          src = ./.;
+          vendorHash = "sha256-GFAgl1rEh/SpMNaXXGNd3JRKzp7PGwlXeOnplTA84UI=";
+          subPackages = [ "cmd/help" ];
+          tags = [ "fts5" ];
+          env.CGO_ENABLED = "1";
+          nativeBuildInputs = [ pkgs.makeWrapper ];
+          postInstall = ''
+            mv $out/bin/help $out/bin/help-cli
+            wrapProgram $out/bin/help-cli \
+              --prefix LD_LIBRARY_PATH : "${pkgs.onnxruntime}/lib"
+          '';
+        };
+
+        help-frontend = pkgs.buildNpmPackage {
+          pname = "help-frontend";
+          version = "0.1.0";
+          src = ./ui/frontend;
+          npmDepsHash = "sha256-Av70fcUrR7LOfmUjG88/FGHrEJDlhElYetnDcqtucnQ=";
+          dontNpmBuild = true;
+          buildPhase = ''
+            node build.mjs
+          '';
+          installPhase = ''
+            mkdir -p $out
+            cp -r dist/* $out/
+          '';
+        };
+
+        help-ui = pkgs.buildGoModule {
+          pname = "help";
+          version = "0.1.0";
+          src = ./.;
+          vendorHash = "sha256-GFAgl1rEh/SpMNaXXGNd3JRKzp7PGwlXeOnplTA84UI=";
+          subPackages = [ "ui" ];
+          tags = [ "fts5" "webkit2_41" ];
+          env.CGO_ENABLED = "1";
+
+          nativeBuildInputs = with pkgs; [ makeWrapper pkg-config ];
+          buildInputs = with pkgs; [
+            gtk3
+            webkitgtk_4_1
+            libsoup_3
+            glib
+          ];
+
+          preBuild = ''
+            mkdir -p ui/frontend/dist
+            cp -r ${help-frontend}/* ui/frontend/dist/
+          '';
+
+          postInstall = ''
+            mv $out/bin/ui $out/bin/help
+            wrapProgram $out/bin/help \
+              --prefix LD_LIBRARY_PATH : "${pkgs.onnxruntime}/lib"
+          '';
+        };
       in
       {
+        packages = {
+          help-cli = help-cli;
+          help = help-ui;
+        };
+
         devShells.default = pkgs.mkShell {
           buildInputs = with pkgs; [
             go
