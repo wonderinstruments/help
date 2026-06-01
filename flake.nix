@@ -30,6 +30,7 @@
 
         runtimeLibs = with pkgs; [
           onnxruntime
+          stdenv.cc.cc.lib
           gtk3
           webkitgtk_4_1
           libsoup_3
