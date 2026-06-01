@@ -29,6 +29,11 @@ async function init() {
 
   const docs = await window.go.main.App.ListDocuments('');
   renderSidebar(docs);
+
+  const initialDoc = await window.go.main.App.GetInitialDoc();
+  if (initialDoc) {
+    readDoc(initialDoc);
+  }
 }
 
 function renderSidebar(docs) {

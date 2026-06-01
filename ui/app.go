@@ -23,14 +23,20 @@ type App struct {
 	db         *index.DB
 	dbReady    chan struct{}
 	embedReady chan struct{}
+	InitialDoc string
 }
 
-func NewApp() *App {
+func NewApp(initialDoc string) *App {
 	return &App{
 		cfg:        config.Default(),
 		dbReady:    make(chan struct{}),
 		embedReady: make(chan struct{}),
+		InitialDoc: initialDoc,
 	}
+}
+
+func (a *App) GetInitialDoc() string {
+	return a.InitialDoc
 }
 
 func (a *App) startup(ctx context.Context) {
