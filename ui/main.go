@@ -13,6 +13,9 @@ import (
 var assets embed.FS
 
 func main() {
+	// Suppress WebKit/GTK runtime warnings from leaking to terminal
+	suppressStderr()
+
 	var initialDoc string
 	if len(os.Args) > 1 {
 		initialDoc = os.Args[1]

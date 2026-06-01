@@ -41,16 +41,16 @@
           gst_all_1.gst-plugins-good
         ];
 
-        version = "0.1.0";
+        version = "0.1.1";
 
         binaries = {
           help-cli = pkgs.fetchurl {
             url = "https://github.com/wonderinstruments/help/releases/download/v${version}/help-cli";
-            sha256 = "1kdv00mhbyw4fp3n9hd6xkgi3i39y75iz8c2f6vhxzs7y57yfwm2";
+            sha256 = "0k9m1i0zf8sjn2llw54gs3nca8il4ps0l33bjrxzdam8i0pgg6lr";
           };
           help-ui = pkgs.fetchurl {
             url = "https://github.com/wonderinstruments/help/releases/download/v${version}/help-ui";
-            sha256 = "0fvkza4qs94yc2q4bdkv347mhphcg107fkzk9h6gyp1h5bx1f2id";
+            sha256 = "0ih1wwb4bjkb89jm86br0sksxr0g2yifqmvhncbyir7y3hg6npwc";
           };
         };
 
@@ -74,8 +74,8 @@
       in
       {
         packages = {
-          help-cli = wrapHelp "help-cli" binaries.help-cli;
-          help = wrapHelp "help" binaries.help-ui;
+          runes-cli = wrapHelp "runes-cli" binaries.help-cli;
+          runes = wrapHelp "runes" binaries.help-ui;
         };
 
         devShells.default = pkgs.mkShell {
