@@ -44,14 +44,14 @@
         version = "0.1.1";
 
         binaries = {
-          help-cli = pkgs.fetchurl {
+          help-cli = (pkgs.fetchurl {
             url = "https://github.com/wonderinstruments/help/releases/download/v${version}/help-cli";
             sha256 = "0k9m1i0zf8sjn2llw54gs3nca8il4ps0l33bjrxzdam8i0pgg6lr";
-          };
-          help-ui = pkgs.fetchurl {
+          }).overrideAttrs { unsafeDiscardReferences.out = true; };
+          help-ui = (pkgs.fetchurl {
             url = "https://github.com/wonderinstruments/help/releases/download/v${version}/help-ui";
             sha256 = "0ih1wwb4bjkb89jm86br0sksxr0g2yifqmvhncbyir7y3hg6npwc";
-          };
+          }).overrideAttrs { unsafeDiscardReferences.out = true; };
         };
 
         wrapHelp = name: bin: pkgs.stdenv.mkDerivation {
@@ -59,14 +59,16 @@
           inherit version;
           src = bin;
           dontUnpack = true;
-          nativeBuildInputs = [ pkgs.makeWrapper ];
+          nativeBuildInputs = [ pkgs.makeWrapper pkgs.autoPatchelfHook ];
+          buildInputs = runtimeLibs;
           dontBuild = true;
           installPhase = ''
             mkdir -p $out/bin
             cp $src $out/bin/${name}
             chmod +x $out/bin/${name}
+          '';
+          postFixup = ''
             wrapProgram $out/bin/${name} \
-              --prefix LD_LIBRARY_PATH : "${pkgs.lib.makeLibraryPath runtimeLibs}" \
               --prefix XDG_DATA_DIRS : "${pkgs.gsettings-desktop-schemas}/share/gsettings-schemas/${pkgs.gsettings-desktop-schemas.name}:${pkgs.gtk3}/share/gsettings-schemas/${pkgs.gtk3.name}" \
               --prefix GST_PLUGIN_PATH : "${pkgs.gst_all_1.gst-plugins-base}/lib/gstreamer-1.0:${pkgs.gst_all_1.gst-plugins-good}/lib/gstreamer-1.0"
           '';
